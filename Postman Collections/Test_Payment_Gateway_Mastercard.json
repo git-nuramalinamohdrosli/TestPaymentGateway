@@ -1,0 +1,229 @@
+{
+  "info": {
+    "_postman_id": "65d22ff0-4df7-4b08-8293-b1e55f3890a1",
+    "name": "Payment Gateway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Step 1 : CREATE SESSION",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "cfbf29a6-b587-4c00-98bc-e607e2cfa9ee",
+            "exec": [
+              "//update sessionId to the variable\r",
+              "if(pm.response.to.have.status(201)){\r",
+              "    var jsonData = pm.response.json();\r",
+              "    var sessionId = jsonData.session.id\r",
+              "    pm.environment.set(\"sessionId\", sessionId);\r",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "1214c681-8abf-4b0d-a8f2-aaf69b27b2f6",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "_postman_id": "360ae91a-c7a8-4e98-9db9-68e50a501d47",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": {
+            "username": "{{Username}}",
+            "password": "{{Password}}",
+            "saveHelperData": true,
+            "showPassword": false
+          }
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic bWVyY2hhbnQuMDAwMDIwMDEyMzQ6NjI3MWVhZjU4YmY5M2YwODM2NTQzYWI5NjJlN2I4ZDY="
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {}
+        },
+        "url": "https://test-gateway.mastercard.com/api/rest/version/63/merchant/{{merchantId}}/session",
+        "description": "Send request to get session.id\n\n1. URL : https://test-gateway.mastercard.com/api/rest/version/63/merchant/{merchantId}/session\n2. Method : POST\n3. Parameter : \n\t-merchantId\n\nDocument : https://test-gateway.mastercard.com/api/documentation/apiDocumentation/rest-json/version/63/operation/Session%3a%20Create%20Session.html?locale=en_US"
+      },
+      "response": []
+    },
+    {
+      "name": "Step 2 : UPDATE SESSION",
+      "_postman_id": "e4126752-8417-44c7-8fb7-32bcfdb9b6c0",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": {
+            "username": "{{Username}}",
+            "password": "{{Password}}",
+            "saveHelperData": true,
+            "showPassword": false
+          }
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic bWVyY2hhbnQuMDAwMDIwMDEyMzQ6NjI3MWVhZjU4YmY5M2YwODM2NTQzYWI5NjJlN2I4ZDY="
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"order\": {\r\n       \"amount\": \"11.00\",\r\n       \"currency\": \"MYR\",\r\n       \"reference\": \"APAD_001\"\r\n},\r\n\"sourceOfFunds\": {\r\n        \"provided\": {\r\n                \"card\": {\r\n                \"number\": \"2223000000000007\",\r\n                 \"expiry\": {\r\n                 \"month\": \"01\",\r\n                 \"year\": \"39\"\r\n                 },\r\n                \"securityCode\": \"100\",\r\n                \"storedOnFile\": \"TO_BE_STORED\" \r\n                }\r\n            },\r\n        \"type\": \"CARD\"\r\n    }\r\n}",
+          "options": {}
+        },
+        "url": "https://test-gateway.mastercard.com/api/rest/version/63/merchant/{{merchantId}}/session/{{sessionId}}",
+        "description": "Add Order details and sourceOfFunds details to the created session.\n\n1. URL : https://test-gateway.mastercard.com/api/rest/version/63/merchant/{merchantId}/session/{sessionId}\n2. Method : PUT\n3. Parameter :\n\t-merchantId\n\t-sessionId\n\nDocument : https://test-gateway.mastercard.com/api/documentation/apiDocumentation/rest-json/version/63/operation/Session%3a%20Update%20Session.html?locale=en_US#"
+      },
+      "response": []
+    },
+    {
+      "name": "Step 3: PAY",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "44a8400a-2c2a-4a57-a6fb-f4c50ce65922",
+            "exec": [
+              "//set new order\r",
+              "let num = Math.floor(Math.random() * 90000) + 10000;\r",
+              "let orderId = \"UOID_APAD_\" + num;\r",
+              "pm.environment.set(\"orderId\", orderId);\r",
+              "\r",
+              "//generating new transactionId for the request\r",
+              "let transactionId = \"UTID_APAD_\" + num;\r",
+              "pm.environment.set(\"transactionId\", transactionId);\r",
+              "\r",
+              "//assume previous transactionId was the one we want to void\r",
+              "pm.environment.set(\"targetTransactionId\", transactionId);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "id": "e46c5ffa-9153-4e8c-adf9-75513b209186",
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "_postman_id": "4666452b-a94e-481f-88f7-9d5432163ce2",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": {
+            "username": "{{Username}}",
+            "password": "{{Password}}",
+            "saveHelperData": true,
+            "showPassword": false
+          }
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic bWVyY2hhbnQuMDAwMDIwMDEyMzQ6NjI3MWVhZjU4YmY5M2YwODM2NTQzYWI5NjJlN2I4ZDY="
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"apiOperation\": \"PAY\",\r\n\"session\": {\r\n    \"id\": \"SESSION0002043424719G4820692J83\"\r\n    }\r\n}",
+          "options": {}
+        },
+        "url": "https://test-gateway.mastercard.com/api/rest/version/63/merchant/{{merchantId}}/order/{{orderId}}/transaction/{{transactionId}}",
+        "description": "Do the payment operation.\n\n1. URL : https://test-gateway.mastercard.com/api/rest/version/63/merchant/{merchantId}/order/{orderId}/transaction/{transactionId}\n2. Method : PUT\n3. Parameter :\n\t-merchantId\n\t-orderId\n\t-transatcionId\n\n\nNote : \n\nAn order can have transactions representing:\nMovement of money. For example, payments and refunds.\nValidations. For example, account verification or 3-D Secure authentication of the payer.\nUndoing other transactions. For example, voiding a payment transaction.\nChargebacks.\nFees from your payment service provider.\nEach transaction on the order must have a unique id that identifies that transaction. Some transactions also hold the transaction identifier of other transactions on the order. For example a void payment transaction references the original payment transaction that is being voided.\n\nIf you attempt an operation and it fails (eg you try to PAY on a card with no funds), then you need a new transactionId for each retry.\n\nDocument : https://test-gateway.mastercard.com/api/documentation/apiDocumentation/rest-json/version/latest/operation/Transaction%3a%20%20Pay.html?locale=en_US"
+      },
+      "response": []
+    },
+    {
+      "name": "OPT : VOID",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "14164aca-e6af-4d48-9ef9-5fa8d5bd1cb3",
+            "exec": [
+              "//generating new transactionId for the request\r",
+              "let num = Math.floor(Math.random() * 90000) + 10000;\r",
+              "let transactionId = \"UTID_APAD_\" + pm.environment.get(\"sessionId\") + \"_\"+ num;\r",
+              "pm.environment.set(\"transactionId\", transactionId);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "_postman_id": "e8f4a8d4-2c1a-4082-9ded-815842f8bf48",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": {
+            "username": "{{Username}}",
+            "password": "{{Password}}",
+            "saveHelperData": true,
+            "showPassword": false
+          }
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic bWVyY2hhbnQuMDAwMDIwMDEyMzQ6NjI3MWVhZjU4YmY5M2YwODM2NTQzYWI5NjJlN2I4ZDY="
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\"apiOperation\": \"VOID\",\r\n\"transaction\": {\r\n    \"targetTransactionId\": \"UTID_APAD_89624\"\r\n    }\r\n}",
+          "options": {
+            "raw": {}
+          }
+        },
+        "url": "https://test-gateway.mastercard.com/api/rest/version/63/merchant/{{merchantId}}/order/{{orderId}}/transaction/{{transactionId}}",
+        "description": "To cancel the transaction.\n1. URL : https://test-gateway.mastercard.com/api/rest/version/63/merchant/{merchantId}/order/{orderId}/transaction/{transactionId}\n2. METHOD :\n3. Parameter : \n- merchantId\n- orderId - orderId of the transatction you want to cancel.\n- transactionId - new transaction Id\n\nNote : \ntransaction.targetTransactionId : the transactionId that you wish to cancel.\n\nDocumentation : https://test-gateway.mastercard.com/api/documentation/apiDocumentation/rest-json/version/63/operation/Transaction%3a%20%20Void.html?locale=en_US"
+      },
+      "response": []
+    }
+  ]
+}
